@@ -62,6 +62,8 @@ uint8_t cmd;
 uint8_t cmdli;
 uint32_t code;
 
+
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -85,17 +87,31 @@ void motorBreak()
 	HAL_GPIO_WritePin(H_BRIDGE_IN_3_GPIO_Port, H_BRIDGE_IN_3_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(H_BRIDGE_IN_4_GPIO_Port, H_BRIDGE_IN_4_Pin, GPIO_PIN_RESET);
 }
-void motorForward()//teraz się obraca
+void motorForward()
+{
+	HAL_GPIO_WritePin(H_BRIDGE_IN_1_GPIO_Port, H_BRIDGE_IN_1_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(H_BRIDGE_IN_2_GPIO_Port, H_BRIDGE_IN_2_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(H_BRIDGE_IN_3_GPIO_Port, H_BRIDGE_IN_3_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(H_BRIDGE_IN_4_GPIO_Port, H_BRIDGE_IN_4_Pin, GPIO_PIN_RESET);
+}
+void motorRotationRight()
 {
 	HAL_GPIO_WritePin(H_BRIDGE_IN_1_GPIO_Port, H_BRIDGE_IN_1_Pin, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(H_BRIDGE_IN_2_GPIO_Port, H_BRIDGE_IN_2_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(H_BRIDGE_IN_3_GPIO_Port, H_BRIDGE_IN_3_Pin, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(H_BRIDGE_IN_4_GPIO_Port, H_BRIDGE_IN_4_Pin, GPIO_PIN_RESET);
 }
-void motorRevers()
+void motorRotationLeft()
 {
 	HAL_GPIO_WritePin(H_BRIDGE_IN_1_GPIO_Port, H_BRIDGE_IN_1_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(H_BRIDGE_IN_2_GPIO_Port, H_BRIDGE_IN_2_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(H_BRIDGE_IN_3_GPIO_Port, H_BRIDGE_IN_3_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(H_BRIDGE_IN_4_GPIO_Port, H_BRIDGE_IN_4_Pin, GPIO_PIN_SET);
+}
+void motorRevers()
+{
+	HAL_GPIO_WritePin(H_BRIDGE_IN_1_GPIO_Port, H_BRIDGE_IN_1_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(H_BRIDGE_IN_2_GPIO_Port, H_BRIDGE_IN_2_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(H_BRIDGE_IN_3_GPIO_Port, H_BRIDGE_IN_3_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(H_BRIDGE_IN_4_GPIO_Port, H_BRIDGE_IN_4_Pin, GPIO_PIN_SET);
 }
@@ -138,6 +154,7 @@ int main(void)
 
 
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -145,54 +162,50 @@ int main(void)
 
   while (1)
   {
-	//	  program - 1086290565
-	//	  start - 1086306885
-	//	  stop - 1086290055
+	  if(code==1086290565)// sprawdza czy robor otrzymał start
+	  {
+		  while(1)
+		  {
+			  if(code==1086290055)while(1);
+			  HAL_ADC_Start(&hadc);
+			  HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
+			  sensor_value_1 = HAL_ADC_GetValue(&hadc);
 
-	 //---MOTOR TEST---
+			  HAL_ADC_Start(&hadc);
+			  HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
+			  sensor_value_2 = HAL_ADC_GetValue(&hadc);
 
-	  //motorForward();
+			  HAL_ADC_Start(&hadc);
+			  HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
+			  sensor_value_3 = HAL_ADC_GetValue(&hadc);
 
-	 //---END OF MOTOR TEST---
-
-	 //---SENSOR TEST---
-//	  HAL_ADC_Start(&hadc);
-//	  HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
-//	  sensor_value_1 = HAL_ADC_GetValue(&hadc);
-//
-//	  HAL_ADC_Start(&hadc);
-//	  HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
-//	  sensor_value_2 = HAL_ADC_GetValue(&hadc);
-//
-//	  HAL_ADC_Start(&hadc);
-//	  HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
-//	  sensor_value_3 = HAL_ADC_GetValue(&hadc);
-//
-//	  line_sensor_1_value = HAL_GPIO_ReadPin(LINE_SENSOR_1_GPIO_Port,LINE_SENSOR_1_Pin);
-//	  line_sensor_2_value = HAL_GPIO_ReadPin(LINE_SENSOR_2_GPIO_Port,LINE_SENSOR_2_Pin);
-//
-//	  button_1_value = HAL_GPIO_ReadPin(BUTTON_1_GPIO_Port,BUTTON_1_Pin);
-//	  button_2_value = HAL_GPIO_ReadPin(BUTTON_2_GPIO_Port,BUTTON_2_Pin);
+			  line_sensor_1_value = HAL_GPIO_ReadPin(LINE_SENSOR_1_GPIO_Port,LINE_SENSOR_1_Pin);
+			  line_sensor_2_value = HAL_GPIO_ReadPin(LINE_SENSOR_2_GPIO_Port,LINE_SENSOR_2_Pin);
 
 
-	 //---END OF SENSOR TEST---
+			  if(sensor_value_3==1)motorForward();
+			  else if(sensor_value_1==1)motorRotationLeft();
+			  else if(sensor_value_2==1)motorRotationRight();
+			  else if(line_sensor_1_value==1)
+			  {
+				  motorRevers();
+				  HAL_Delay(100);
+				  motorRotationLeft();
+				  HAL_Delay(100);
+				  motorBreak();
+			  }
+			  else if(line_sensor_2_value==1)
+			  {
+				  motorRevers();
+				  HAL_Delay(100);
+				  motorRotationRight();
+				  HAL_Delay(100);
+				  motorBreak();
+			  }
+			  else motorForward();
+		  }
 
-	 //--LED TEST--- DIZALA
-	  /*
-	  HAL_GPIO_WritePin(LED_1_GPIO_Port,LED_1_Pin, GPIO_PIN_SET);
-	  HAL_GPIO_WritePin(LED_2_GPIO_Port,LED_2_Pin, GPIO_PIN_SET);
-	  HAL_GPIO_WritePin(LED_3_GPIO_Port,LED_3_Pin, GPIO_PIN_SET);
-	  HAL_Delay(200);
-
-	  HAL_GPIO_WritePin(LED_1_GPIO_Port,LED_1_Pin, GPIO_PIN_RESET);
-	  HAL_GPIO_WritePin(LED_2_GPIO_Port,LED_2_Pin, GPIO_PIN_RESET);
-	  HAL_GPIO_WritePin(LED_3_GPIO_Port,LED_3_Pin, GPIO_PIN_RESET);
-	  HAL_Delay(200);
-	*/
-
-	 //--END OF LED TEST---
-
-
+	  }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -380,7 +393,7 @@ static void MX_TIM3_Init(void)
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim3.Init.Period = 9999;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
   {
     Error_Handler();

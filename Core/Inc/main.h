@@ -71,6 +71,8 @@ void Error_Handler(void);
 #define SENSOR_1_GPIO_Port GPIOA
 #define SENSOR_2_Pin GPIO_PIN_5
 #define SENSOR_2_GPIO_Port GPIOA
+#define IR_PWM_Pin GPIO_PIN_6
+#define IR_PWM_GPIO_Port GPIOA
 #define SENSOR_3_Pin GPIO_PIN_0
 #define SENSOR_3_GPIO_Port GPIOB
 #define BUTTON_1_Pin GPIO_PIN_1

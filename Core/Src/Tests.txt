@@ -1,0 +1,43 @@
+//	  program - 1086290565
+//	  start - 1086306885
+//	  stop - 1086290055
+//---MOTOR TEST---
+
+//motorForward();
+
+//---END OF MOTOR TEST---
+
+
+//--LED TEST--- DIZALA
+  /*
+  HAL_GPIO_WritePin(LED_1_GPIO_Port,LED_1_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(LED_2_GPIO_Port,LED_2_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(LED_3_GPIO_Port,LED_3_Pin, GPIO_PIN_SET);
+  HAL_Delay(200);
+
+  HAL_GPIO_WritePin(LED_1_GPIO_Port,LED_1_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(LED_2_GPIO_Port,LED_2_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(LED_3_GPIO_Port,LED_3_Pin, GPIO_PIN_RESET);
+  HAL_Delay(200);
+*/
+
+//--END OF LED TEST---
+//---SENSOR TEST---
+//	  HAL_ADC_Start(&hadc);
+//	  HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
+//	  sensor_value_1 = HAL_ADC_GetValue(&hadc);
+//
+//	  HAL_ADC_Start(&hadc);
+//	  HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
+//	  sensor_value_2 = HAL_ADC_GetValue(&hadc);
+//
+//	  HAL_ADC_Start(&hadc);
+//	  HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
+//	  sensor_value_3 = HAL_ADC_GetValue(&hadc);
+//
+//	  line_sensor_1_value = HAL_GPIO_ReadPin(LINE_SENSOR_1_GPIO_Port,LINE_SENSOR_1_Pin);
+//	  line_sensor_2_value = HAL_GPIO_ReadPin(LINE_SENSOR_2_GPIO_Port,LINE_SENSOR_2_Pin);
+//
+//	  button_1_value = HAL_GPIO_ReadPin(BUTTON_1_GPIO_Port,BUTTON_1_Pin);
+//	  button_2_value = HAL_GPIO_ReadPin(BUTTON_2_GPIO_Port,BUTTON_2_Pin);
+//---END OF SENSOR TEST---
