@@ -166,7 +166,7 @@ int main(void)
 	  {
 		  while(1)
 		  {
-			  if(code==1086290055)while(1);
+			  if(code==1086290055){while(1){motorBreak();}}
 			  HAL_ADC_Start(&hadc);
 			  HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
 			  sensor_value_1 = HAL_ADC_GetValue(&hadc);
