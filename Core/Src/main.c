@@ -45,10 +45,7 @@ TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN PV */
-volatile uint8_t sensor_value_1;
-volatile uint8_t sensor_value_2;
-volatile uint8_t sensor_value_3;
-
+volatile static uint16_t sensor_value[3];
 
 uint8_t line_sensor_1_value;
 uint8_t line_sensor_2_value;
@@ -78,7 +75,13 @@ static void MX_TIM1_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  if (htim == &htim3) {
+    HAL_GPIO_TogglePin(IR_PWM_GPIO_Port, IR_PWM_Pin);
+    //HAL_GPIO_TogglePin(LED_1_GPIO_Port, LED_1_Pin);
+  }
+}
 
 void motorBreak()
 {
@@ -87,7 +90,7 @@ void motorBreak()
 	HAL_GPIO_WritePin(H_BRIDGE_IN_3_GPIO_Port, H_BRIDGE_IN_3_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(H_BRIDGE_IN_4_GPIO_Port, H_BRIDGE_IN_4_Pin, GPIO_PIN_RESET);
 }
-void motorForward()
+void motorRevers()
 {
 	HAL_GPIO_WritePin(H_BRIDGE_IN_1_GPIO_Port, H_BRIDGE_IN_1_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(H_BRIDGE_IN_2_GPIO_Port, H_BRIDGE_IN_2_Pin, GPIO_PIN_SET);
@@ -108,7 +111,7 @@ void motorRotationLeft()
 	HAL_GPIO_WritePin(H_BRIDGE_IN_3_GPIO_Port, H_BRIDGE_IN_3_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(H_BRIDGE_IN_4_GPIO_Port, H_BRIDGE_IN_4_Pin, GPIO_PIN_SET);
 }
-void motorRevers()
+void motorForward()
 {
 	HAL_GPIO_WritePin(H_BRIDGE_IN_1_GPIO_Port, H_BRIDGE_IN_1_Pin, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(H_BRIDGE_IN_2_GPIO_Port, H_BRIDGE_IN_2_Pin, GPIO_PIN_RESET);
@@ -152,8 +155,13 @@ int main(void)
   HAL_TIM_Base_Start(&htim1);
   __HAL_TIM_SET_COUNTER(&htim1, 0);
 
+  HAL_TIM_Base_Start_IT(&htim3);
 
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+  HAL_ADC_Start(&hadc);
+  HAL_ADCEx_Calibration_Start(&hadc);
+
+  //HAL_ADCEx_Calibration_Start(&hadc);
+  //HAL_ADC_Start_DMA(&hadc, (uint32_t*)sensor_value, 3);
 
   /* USER CODE END 2 */
 
@@ -162,47 +170,65 @@ int main(void)
 
   while (1)
   {
+
+	  HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
+	  sensor_value[0] = HAL_ADC_GetValue(&hadc);
+
+
+	  HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
+	  sensor_value[1] = HAL_ADC_GetValue(&hadc);
+
+
+	  HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
+	  sensor_value[2] = HAL_ADC_GetValue(&hadc);
+
+	  line_sensor_1_value = HAL_GPIO_ReadPin(LINE_SENSOR_1_GPIO_Port,LINE_SENSOR_1_Pin);
+	  line_sensor_2_value = HAL_GPIO_ReadPin(LINE_SENSOR_2_GPIO_Port,LINE_SENSOR_2_Pin);
+
 	  if(code==1086290565)// sprawdza czy robor otrzymał start
 	  {
 		  while(1)
 		  {
 			  if(code==1086290055){while(1){motorBreak();}}
-			  HAL_ADC_Start(&hadc);
-			  HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
-			  sensor_value_1 = HAL_ADC_GetValue(&hadc);
+			  motorForward();
 
-			  HAL_ADC_Start(&hadc);
-			  HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
-			  sensor_value_2 = HAL_ADC_GetValue(&hadc);
 
-			  HAL_ADC_Start(&hadc);
 			  HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
-			  sensor_value_3 = HAL_ADC_GetValue(&hadc);
+			  sensor_value[0] = HAL_ADC_GetValue(&hadc);
+
+
+			  HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
+			  sensor_value[1] = HAL_ADC_GetValue(&hadc);
+
+
+			  HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
+			  sensor_value[2] = HAL_ADC_GetValue(&hadc);
 
 			  line_sensor_1_value = HAL_GPIO_ReadPin(LINE_SENSOR_1_GPIO_Port,LINE_SENSOR_1_Pin);
 			  line_sensor_2_value = HAL_GPIO_ReadPin(LINE_SENSOR_2_GPIO_Port,LINE_SENSOR_2_Pin);
 
 
-			  if(sensor_value_3==1)motorForward();
-			  else if(sensor_value_1==1)motorRotationLeft();
-			  else if(sensor_value_2==1)motorRotationRight();
-			  else if(line_sensor_1_value==1)
+			  if(sensor_value[2]<=2200)motorForward();
+			  else if(sensor_value[0]<=2200)motorRotationLeft();
+			  else if(sensor_value[1]<=2200)motorRotationRight();
+			  else if(line_sensor_1_value==0)
 			  {
 				  motorRevers();
-				  HAL_Delay(100);
+				  HAL_Delay(500);
 				  motorRotationLeft();
-				  HAL_Delay(100);
+				  HAL_Delay(500);
 				  motorBreak();
 			  }
-			  else if(line_sensor_2_value==1)
+			  else if(line_sensor_2_value==0)
 			  {
 				  motorRevers();
-				  HAL_Delay(100);
+				  HAL_Delay(500);
 				  motorRotationRight();
-				  HAL_Delay(100);
+				  HAL_Delay(500);
 				  motorBreak();
 			  }
 			  else motorForward();
+
 		  }
 
 	  }
@@ -383,15 +409,14 @@ static void MX_TIM3_Init(void)
 
   TIM_ClockConfigTypeDef sClockSourceConfig = {0};
   TIM_MasterConfigTypeDef sMasterConfig = {0};
-  TIM_OC_InitTypeDef sConfigOC = {0};
 
   /* USER CODE BEGIN TIM3_Init 1 */
 
   /* USER CODE END TIM3_Init 1 */
   htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 420;
+  htim3.Init.Prescaler = 15999;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 9999;
+  htim3.Init.Period = 0;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
@@ -403,28 +428,15 @@ static void MX_TIM3_Init(void)
   {
     Error_Handler();
   }
-  if (HAL_TIM_PWM_Init(&htim3) != HAL_OK)
-  {
-    Error_Handler();
-  }
   sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
   if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
   {
     Error_Handler();
   }
-  sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 19000;
-  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
-  {
-    Error_Handler();
-  }
   /* USER CODE BEGIN TIM3_Init 2 */
 
   /* USER CODE END TIM3_Init 2 */
-  HAL_TIM_MspPostInit(&htim3);
 
 }
 
@@ -438,11 +450,15 @@ static void MX_GPIO_Init(void)
   GPIO_InitTypeDef GPIO_InitStruct = {0};
 
   /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOF_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, H_BRIDGE_FL_1_Pin|H_BRIDGE_FL_2_Pin, GPIO_PIN_SET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(IR_PWM_GPIO_Port, IR_PWM_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, LED_3_Pin|LED_2_Pin|LED_1_Pin|H_BRIDGE_IN_1_Pin
@@ -469,6 +485,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(BUTTON_2_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : IR_PWM_Pin */
+  GPIO_InitStruct.Pin = IR_PWM_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(IR_PWM_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : BUTTON_1_Pin */
   GPIO_InitStruct.Pin = BUTTON_1_Pin;
@@ -516,6 +539,7 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
   if(GPIO_Pin == STARTER_Pin)
